@@ -56,7 +56,7 @@
     //5. 通过在一个操作中将一个新的操作添加到主队列中以实现与主线程同步
 //    [self addOperationToMainQueue];
     //6. 可通过NSLock 对象[[NSLock alloc] init]的 lock 和 unlock方法来保证线程安全
-//    [self safeForThread];
+    [self safeForThread];
 
     
 }
@@ -300,23 +300,30 @@
 }
 
 - (void)safeForThread {
-    NSOperationQueue *queue = [[NSOperationQueue alloc] init];
-    NSLock *lock = [[NSLock alloc] init];
-    for (NSInteger j = 0; j < 10; j ++) {
-        [queue addOperationWithBlock:^{
-            NSLog(@"start operation");
-            //加锁
-            [lock lock];
-            
-            //执行任务
-            NSLog(@"operation is executing.");
-            [NSThread sleepForTimeInterval:1];
-            
-            //解锁
-            [lock unlock];
-            NSLog(@"end operation");
-        }];
+    
+    for (NSInteger i = 0; i < 5; i ++) {
+        NSOperationQueue *queue = [[NSOperationQueue alloc] init];
+        static NSLock *lock = nil;
+        if (lock == nil) {
+            lock = [[NSLock alloc] init];
+        }
+        for (NSInteger j = 0; j < 5; j ++) {
+            [queue addOperationWithBlock:^{
+                NSLog(@"start operation");
+                //加锁
+                [lock lock];
+                
+                //执行任务
+                NSLog(@"operation is executing.");
+                [NSThread sleepForTimeInterval:3];
+                
+                //解锁
+                [lock unlock];
+                NSLog(@"operation is finished");
+            }];
+        }
     }
+    
 }
 
 - (void)didReceiveMemoryWarning {
